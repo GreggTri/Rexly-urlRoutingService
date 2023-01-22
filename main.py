@@ -29,6 +29,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get('/')
+def healthCheck(req: Request, res: Response):
+    res.status_code = status.HTTP_200_OK
+    return 'ok'
+
 @app.post('/{short_url}')
 def redirection(req: Request, res: Response, short_url):
     if len(short_url) != 5:

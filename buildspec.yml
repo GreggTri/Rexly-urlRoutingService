@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+    commands:
+    - echo Executing Install Phase
+
+  pre_build:
+    commands:
+      - echo Executing Pre_Build Phase
+      - pip install -r "requirements.txt"
+  build:
+    commands:
+    - echo Executing Build Phase
+
+artifacts:
+  files:
+    - '**/*'
