@@ -31,8 +31,17 @@ app.add_middleware(
 
 @app.get('/')
 def healthCheck(req: Request, res: Response):
-    res.status_code = status.HTTP_200_OK
-    return 'ok'
+    try:    
+        res.status_code = status.HTTP_200_OK
+        return 'ok'
+    except Exception as e:
+        res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return 'not ok'
+
+
+@app.get('/favicon.ico', status_code=204)
+def ignoreFavicon():
+    pass
 
 @app.post('/{short_url}')
 def redirection(req: Request, res: Response, short_url):
