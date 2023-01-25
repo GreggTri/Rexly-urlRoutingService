@@ -43,7 +43,7 @@ def healthCheck(req: Request, res: Response):
 def ignoreFavicon():
     pass
 
-@app.post('/{short_url}')
+@app.get('/{short_url}')
 def redirection(req: Request, res: Response, short_url):
     if len(short_url) != 5:
         res.status_code = status.HTTP_400_BAD_REQUEST
@@ -53,11 +53,11 @@ def redirection(req: Request, res: Response, short_url):
     if url:
         req.app.amplitude.track(BaseEvent(
                 event_type='Product Link Clicked',
-                user_id=str(url.user_id),
+                user_id=str(url.get('user_id')),
             ))
         req.app.amplitude.shutdown()
         
-        return RedirectResponse(url.long, status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url.get('long'), status.HTTP_303_SEE_OTHER)
     else:
         res.status_code = status.HTTP_404_NOT_FOUND
         return f'<h1>404 ERROR: URL NOT FOUND</h1>'
