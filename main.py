@@ -5,7 +5,12 @@ from pymongo import MongoClient
 import os
 from amplitude import *
 from dotenv import load_dotenv
+import logging
+import traceback 
 
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+
+logger = logging.getLogger(__name__) 
 load_dotenv()
 app = FastAPI()
 
@@ -14,8 +19,8 @@ try:
     app.db = app.mongodb_client[os.getenv('DB_NAME')]
     app.amplitude = Amplitude(os.getenv('AMP_API_KEY'))
     print("connected to database!")
-except Exception as e:
-    print("Error: ", e)
+except:
+    logger.critical(f"{traceback.format_exc()}")
     
 origins = [
     os.getenv('REXLY_BACKEND')
@@ -45,19 +50,24 @@ def ignoreFavicon():
 
 @app.get('/{short_url}')
 def redirection(req: Request, res: Response, short_url):
-    if len(short_url) != 5:
-        res.status_code = status.HTTP_400_BAD_REQUEST
-        return f'<h1>This is not a correct url</h1>'
-    
-    url = req.app.db['urls'].find_one({"short":short_url})
-    if url:
-        req.app.amplitude.track(BaseEvent(
-                event_type='Product Link Clicked',
-                user_id=str(url.get('user_id')),
-            ))
-        req.app.amplitude.shutdown()
+    try:
+        if len(short_url) != 5:
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            return f'<h1>This is not a correct url</h1>'
         
-        return RedirectResponse(url.get('long'), status.HTTP_303_SEE_OTHER)
-    else:
-        res.status_code = status.HTTP_404_NOT_FOUND
-        return f'<h1>404 ERROR: URL NOT FOUND</h1>'
+        url = req.app.db['urls'].find_one({"short":short_url})
+        if url:
+            req.app.amplitude.track(BaseEvent(
+                    event_type='Product Link Clicked',
+                    user_id=str(url.get('user_id')),
+                ))
+            req.app.amplitude.shutdown()
+            
+            return RedirectResponse(url.get('long'), status.HTTP_303_SEE_OTHER)
+        else:
+            res.status_code = status.HTTP_404_NOT_FOUND
+            return f'<h1>404 ERROR: URL NOT FOUND</h1>'
+    except:
+        res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        
+        logger.critical(f"{traceback.format_exc()}")
