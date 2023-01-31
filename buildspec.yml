@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+    commands:
+    - echo Executing Install Phase
+    - python -m venv ~/.venv
+    - source ~/.venv/bin/activate
+    - pip install --upgrade pip
+
+  pre_build:
+    commands:
+      - echo Executing Pre_Build Phase
+      - pip install -r "requirements.txt"
+  build:
+    commands:
+    - echo Executing Build Phase
+
+artifacts:
+  files:
+    - '**/*'
